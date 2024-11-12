@@ -1,9 +1,0 @@
-in: path1
-out: path2
-
-nested:
-  - path: "111"
-  - path: "222"
-  - path: "333"
-  - path: "444"
-  - path: "555"
