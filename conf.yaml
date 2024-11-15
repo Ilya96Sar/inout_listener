@@ -3,17 +3,32 @@ out: path2
 
 nested:
   - path: "111"
-    exchange_name: exchange1
-    exchange_config: config1
+    exchange_name: "binance"
+    account_name: "binance_account1"
+    exchange_config:
+      api_key: "API_KEY_111"
+      api_secret: "API_SECRET_111"
   - path: "222"
-    exchange_name: exchange2
-    exchange_config: config2
+    exchange_name: "binance"
+    account_name: "binance_account2"
+    exchange_config:
+      api_key: "API_KEY_222"
+      api_secret: "API_SECRET_222"
   - path: "333"
-    exchange_name: exchange3
-    exchange_config: config3
+    exchange_name: "bybit"
+    account_name: "bybit_account1"
+    exchange_config:
+      api_key: "API_KEY_333"
+      api_secret: "API_SECRET_333"
   - path: "444"
-    exchange_name: exchange4
-    exchange_config: config4
+    exchange_name: "bybit"
+    account_name: "bybit_account2"
+    exchange_config:
+      api_key: "API_KEY_444"
+      api_secret: "API_SECRET_444"
   - path: "555"
-    exchange_name: exchange5
-    exchange_config: config5
+    exchange_name: "bybit"
+    account_name: "bybit_account3"
+    exchange_config:
+      api_key: "API_KEY_555"
+      api_secret: "API_SECRET_555"
