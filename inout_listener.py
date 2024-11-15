@@ -2,6 +2,7 @@ import yaml
 import os
 import time
 import random
+import ccxt
 import shutil
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -31,6 +32,25 @@ class NewFileHandler(FileSystemEventHandler):
         # Обработка файла:
         self.process_catched_file(event.src_path)
 
+    def connect_and_fetch_balance(self, exchange_name, account_name, exchange_config):
+        try:
+            # Динамическая инициализация биржи с использованием ccxt
+            exchange_class = getattr(ccxt, exchange_name)
+            exchange = exchange_class({
+                'apiKey': exchange_config['api_key'],
+                'secret': exchange_config['api_secret'],
+                'options': {'defaultType': 'future'}
+            })
+
+            # Получение баланса
+            balance = exchange.fetch_balance()
+            print(f"Баланс для аккаунта {account_name} на бирже {exchange_name}: {balance['total']}")
+
+        except AttributeError:
+            print(f"Биржа с именем '{exchange_name}' не найдена в ccxt.")
+        except Exception as e:
+            print(f"Ошибка при подключении к бирже {exchange_name} для аккаунта {account_name}: {str(e)}")
+
     def process_catched_file(self, file_path):
         # Задержка перед обработкой для избежания ошибки доступа
         time.sleep(1)
@@ -49,10 +69,10 @@ class NewFileHandler(FileSystemEventHandler):
                 shutil.move(file_path, destination_path)
                 print(f"Файл перемещен в {destination_path}")
 
-                exchange_name = directory["exchange_name"]
-                exchange_config = directory["exchange_config"]
-                print(f"Path: {directory['path']}, Exchange Name: {exchange_name}, Exchange "
-                      f"Config: {exchange_config}")
+                # Подключение к бирже и вывод баланса
+                self.connect_and_fetch_balance(directory['exchange_name'],
+                                               directory['account_name'],
+                                               directory['exchange_config'])
 
                 file_moved = True
                 break
