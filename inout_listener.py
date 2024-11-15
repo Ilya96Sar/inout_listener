@@ -48,6 +48,11 @@ class NewFileHandler(FileSystemEventHandler):
                 destination_path = os.path.join(directory["path"], os.path.basename(file_path))
                 shutil.move(file_path, destination_path)
                 print(f"Файл перемещен в {destination_path}")
+
+                exchange_name = directory["exchange_name"]
+                exchange_config = directory["exchange_config"]
+                print(f"Path: {directory['path']}, Exchange Name: {exchange_name}, Exchange Config: {exchange_config}")
+
                 file_moved = True
                 break
 

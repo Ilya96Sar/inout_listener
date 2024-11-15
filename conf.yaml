@@ -3,7 +3,17 @@ out: path2
 
 nested:
   - path: "111"
+    exchange_name: exchange1
+    exchange_config: config1
   - path: "222"
+    exchange_name: exchange2
+    exchange_config: config2
   - path: "333"
+    exchange_name: exchange3
+    exchange_config: config3
   - path: "444"
+    exchange_name: exchange4
+    exchange_config: config4
   - path: "555"
+    exchange_name: exchange5
+    exchange_config: config5
