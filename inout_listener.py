@@ -51,8 +51,8 @@ class NewFileHandler(FileSystemEventHandler):
 
                 exchange_name = directory["exchange_name"]
                 exchange_config = directory["exchange_config"]
-                print(f"Path: {directory['path']}, Exchange Name1: {exchange_name}, Exchange "
-                      f"Config1: {exchange_config}")
+                print(f"Path: {directory['path']}, Exchange Name: {exchange_name}, Exchange "
+                      f"Config: {exchange_config}")
 
                 file_moved = True
                 break
