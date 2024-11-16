@@ -1,7 +1,6 @@
 import yaml
 import os
 import time
-import random
 import ccxt
 import shutil
 from watchdog.observers import Observer
@@ -62,25 +61,36 @@ class NewFileHandler(FileSystemEventHandler):
         # Флаг для отслеживания успешного перемещения файла
         file_moved = False
 
+        # Получаем имя файла без пути
+        file_name = os.path.basename(file_path)
+
         # Проход по списку директорий из nested
         for directory in self.config["nested"]:
             exchange_name = directory["exchange_name"]
             account_name = directory["account_name"]
             exchange_config = directory["exchange_config"]
+            matching_name = directory["matching"]
 
-            # Подключаемся к бирже и проверяем баланс
-            balance = self.connect_and_fetch_balance(exchange_name, account_name, exchange_config)
+            # Проверяем, совпадает ли имя файла с matching
+            if file_name == matching_name:
+                print(
+                    f"Файл {file_name} совпадает с matching {matching_name} для папки {directory['path']}")
 
-            # Проверяем, есть ли положительный баланс USDT
-            if balance and balance.get('USDT', 0) > 0:
-                print(f"Баланс положительный на {exchange_name} ({account_name}), перемещаю файл в папку {directory['path']}")
-                destination_path = os.path.join(directory["path"], os.path.basename(file_path))
-                shutil.move(file_path, destination_path)
-                print(f"Файл перемещен в {destination_path} на бирже {exchange_name}, аккаунт {account_name}")
-                file_moved = True
-                break
+                # Подключаемся к бирже и проверяем баланс
+                balance = self.connect_and_fetch_balance(exchange_name, account_name, exchange_config)
+
+                # Проверяем, есть ли положительный баланс USDT
+                if balance and balance.get('USDT', 0) > 0:
+                    print(f"Баланс положительный на {exchange_name} ({account_name}), перемещаю файл в папку {directory['path']}")
+                    destination_path = os.path.join(directory["path"], os.path.basename(file_path))
+                    shutil.move(file_path, destination_path)
+                    print(f"Файл перемещен в {destination_path} на бирже {exchange_name}, аккаунт {account_name}")
+                    file_moved = True
+                    break
+                else:
+                    print(f"Баланс на {exchange_name} ({account_name}) равен 0, следующая итерация")
             else:
-                print(f"Баланс на {exchange_name} ({account_name}) равен 0, следующая итерация")
+                print(f"Файл {file_name} не совпадает с matching {matching_name} для папки {directory['path']}, пропускаем...")
 
 
         # for directory in self.config["nested"]:
