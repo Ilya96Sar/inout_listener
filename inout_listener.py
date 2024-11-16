@@ -82,14 +82,17 @@ class NewFileHandler(FileSystemEventHandler):
 
                 # Проверяем, есть ли положительный баланс USDT
                 if balance and balance.get('USDT', 0) > 0:
-                    print(f"Баланс положительный на {exchange_name} ({account_name}), перемещаю файл в папку {directory['path']}")
+                    print(f"Баланс положительный для аккаунта на {account_name} на "
+                          f"бирже {exchange_name}, "
+                          f"перемещаю файл в папку {directory['path']}")
                     destination_path = os.path.join(directory["path"], os.path.basename(file_path))
                     shutil.move(file_path, destination_path)
                     print(f"Файл перемещен в {destination_path} на бирже {exchange_name}, аккаунт {account_name}")
                     file_moved = True
                     break
                 else:
-                    print(f"Баланс на {exchange_name} ({account_name}) равен 0, следующая итерация")
+                    print(f"Баланс для аккаунта {account_name} на бирже {exchange_name} равен 0, "
+                          f"следующая итерация")
             else:
                 print(f"Файл {file_name} не совпадает с matching {matching_pattern} для папки"
                       f" {directory['path']}, далее...")
