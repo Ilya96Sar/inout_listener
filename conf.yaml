@@ -8,7 +8,7 @@ nested:
     exchange_config:
       api_key: "API_KEY_111"
       api_secret: "API_SECRET_111"
-    matching: "file1.docx"
+    matching: '^(?P<symbol>(TRXUSDT|ARUSDT))\+(?P<timeframe>[^+]+)\+(?P<direction>[^+]+)\+(?P<other>[^+]+)\.csv$'
   - path: "222"
     exchange_name: "binance"
     account_name: "binance_account2"

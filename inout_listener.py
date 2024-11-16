@@ -1,4 +1,5 @@
 import yaml
+import re
 import os
 import time
 import ccxt
@@ -69,12 +70,12 @@ class NewFileHandler(FileSystemEventHandler):
             exchange_name = directory["exchange_name"]
             account_name = directory["account_name"]
             exchange_config = directory["exchange_config"]
-            matching_name = directory["matching"]
+            matching_pattern = directory["matching"]
 
-            # Проверяем, совпадает ли имя файла с matching
-            if file_name == matching_name:
+            # Проверяем, совпадает ли имя файла с регулярным выражением из matching
+            if matching_pattern and re.match(matching_pattern, file_name):
                 print(
-                    f"Файл {file_name} совпадает с matching {matching_name} для папки {directory['path']}")
+                    f"Файл {file_name} соответствует регулярному выражению {matching_pattern} для папки {directory['path']}")
 
                 # Подключаемся к бирже и проверяем баланс
                 balance = self.connect_and_fetch_balance(exchange_name, account_name, exchange_config)
@@ -90,7 +91,8 @@ class NewFileHandler(FileSystemEventHandler):
                 else:
                     print(f"Баланс на {exchange_name} ({account_name}) равен 0, следующая итерация")
             else:
-                print(f"Файл {file_name} не совпадает с matching {matching_name} для папки {directory['path']}, пропускаем...")
+                print(f"Файл {file_name} не совпадает с matching {matching_pattern} для папки"
+                      f" {directory['path']}, далее...")
 
 
         # for directory in self.config["nested"]:
