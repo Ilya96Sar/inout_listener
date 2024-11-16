@@ -8,27 +8,32 @@ nested:
     exchange_config:
       api_key: "API_KEY_111"
       api_secret: "API_SECRET_111"
+    matching: "file1.docx"
   - path: "222"
     exchange_name: "binance"
     account_name: "binance_account2"
     exchange_config:
       api_key: "API_KEY_222"
       api_secret: "API_SECRET_222"
+    matching: "file2.docx"
   - path: "333"
     exchange_name: "bybit"
     account_name: "bybit_account1"
     exchange_config:
       api_key: "API_KEY_333"
       api_secret: "API_SECRET_333"
+    matching: "file3.docx"
   - path: "444"
     exchange_name: "bybit"
     account_name: "bybit_account2"
     exchange_config:
       api_key: "API_KEY_444"
       api_secret: "API_SECRET_444"
+    matching: "file4.docx"
   - path: "555"
     exchange_name: "bybit"
     account_name: "bybit_account3"
     exchange_config:
       api_key: "API_KEY_555"
       api_secret: "API_SECRET_555"
+    matching: "file5.docx"
