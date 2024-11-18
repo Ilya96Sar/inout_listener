@@ -55,6 +55,43 @@ class NewFileHandler(FileSystemEventHandler):
             print(f"Ошибка при подключении к бирже {exchange_name} для аккаунта {account_name}: {str(e)}")
         return None
 
+    def check_active_positions(self, file_name, exchange_name, account_name, exchange_config):
+
+        # Компилируем регулярное выражение
+        pattern = re.compile(r"^(?P<symbol>[A-Z]+USDT)\+.*")
+
+        # Извлекаем символ из имени файла
+        match = pattern.match(file_name)
+        if not match:
+            print(f"Не удалось извлечь символ из имени файла {file_name}, пропускаем")
+            return False
+
+        symbol = match.group("symbol")
+        print(f"Проверяем наличие открытой позиции по инструменту {symbol} для аккаунта {account_name} на бирже {exchange_name}")
+
+        try:
+            # Динамическая инициализация биржи с использованием ccxt
+            exchange_class = getattr(ccxt, exchange_name)
+            exchange = exchange_class({
+                'apiKey': exchange_config['api_key'],
+                'secret': exchange_config['api_secret'],
+                'options': {'defaultType': 'future'}
+            })
+
+            # Получаем активные позиции
+            positions = exchange.fetch_positions()
+            for position in positions:
+                if position['symbol'] == symbol and position['contracts'] > 0:
+                    print(f"Открыта позиция по инструменту {symbol}, пропускаем файл")
+                    return True
+
+            print(f"Открытых позиций по инструменту {symbol} нет")
+            return False
+
+        except Exception as e:
+            print(f"Ошибка при проверке открытых позиций: {str(e)}")
+            return False
+
     def process_catched_file(self, file_path):
         # Задержка перед обработкой для избежания ошибки доступа
         time.sleep(1)
@@ -72,30 +109,37 @@ class NewFileHandler(FileSystemEventHandler):
             exchange_config = directory["exchange_config"]
             matching_pattern = directory["matching"]
 
-            # Проверяем, совпадает ли имя файла с регулярным выражением из matching
+            # 1. Проверяем, совпадает ли имя файла с регулярным выражением из matching
             if matching_pattern and re.match(matching_pattern, file_name):
-                print(
-                    f"Файл {file_name} соответствует регулярному выражению {matching_pattern} для папки {directory['path']}")
+                print(f"Файл {file_name} соответствует регулярному выражению {matching_pattern} для папки {directory['path']}")
 
                 # Подключаемся к бирже и проверяем баланс
                 balance = self.connect_and_fetch_balance(exchange_name, account_name, exchange_config)
 
-                # Проверяем, есть ли положительный баланс USDT
+                # 2. Проверяем, есть ли положительный баланс USDT
                 if balance and balance.get('USDT', 0) > 0:
                     print(f"Баланс положительный для аккаунта на {account_name} на "
                           f"бирже {exchange_name}, "
                           f"перемещаю файл в папку {directory['path']}")
-                    destination_path = os.path.join(directory["path"], os.path.basename(file_path))
-                    shutil.move(file_path, destination_path)
-                    print(f"Файл перемещен в {destination_path} на бирже {exchange_name}, аккаунт {account_name}")
-                    file_moved = True
-                    break
+
+                    # 3. Проверяем, что позиция не открыта
+                    if not self.check_active_positions(file_name, exchange_name, account_name,
+                                                  exchange_config):
+                        print(f"Открытых позиций по инструменту из файла {file_name} нет, "
+                              f"перемещаем файл в in")
+                        destination_path = os.path.join(directory["path"], os.path.basename(file_path))
+                        shutil.move(file_path, destination_path)
+                        print(f"Файл перемещен в {destination_path} на бирже {exchange_name}, аккаунт {account_name}")
+                        file_moved = True
+                        break
+                    else:
+                        print(f"Открыта позиция по инструменту из файла {file_name}, следующая итерация")
                 else:
                     print(f"Баланс для аккаунта {account_name} на бирже {exchange_name} равен 0, "
                           f"следующая итерация")
             else:
                 print(f"Файл {file_name} не совпадает с matching {matching_pattern} для папки"
-                      f" {directory['path']}, далее...")
+                      f" {directory['path']}, следующая итерация")
 
 
         # for directory in self.config["nested"]:
