@@ -74,7 +74,7 @@ class NewFileHandler(FileSystemEventHandler):
         positions = self.exchange_manager.fetch_positions(exchange_name, exchange_config)
         for position in positions:
             if position['symbol'] == symbol and position['contracts'] > 0:
-                print(f"Открыта позиция по инструменту {symbol}.")
+                print(f"Открыта позиция по инструменту {symbol}")
                 return True
         print(f"Открытых позиций по инструменту {symbol} нет")
         return False
@@ -97,33 +97,31 @@ class NewFileHandler(FileSystemEventHandler):
             matching_pattern = directory["matching"]
 
             # 1. Проверяем, совпадает ли имя файла с регулярным выражением из matching
-            if matching_pattern and re.match(matching_pattern, file_name):
-                print(f"Файл {file_name} соответствует регулярному выражению {matching_pattern} "
-                      f"для {directory['path']}")
+            match = re.match(matching_pattern, file_name)
+            if not match:
+                print(f"Файл {file_name} не соответствует шаблону {matching_pattern} для папки {directory['path']}")
+                continue
+            print(f"Файл {file_name} соответствует шаблону {matching_pattern} для {directory['path']}")
+            match_dict = match.groupdict()
+            symbol = match_dict['symbol']
 
-                # 2. Проверяем баланс
-                balance = self.exchange_manager.fetch_balance(exchange_name, exchange_config)
+            # 2. Проверяем баланс
+            balance = self.exchange_manager.fetch_balance(exchange_name, exchange_config)
+            if not balance or balance.get('USDT', {}).get('total', 0) == 0:
+                print(f"Баланс для {account_name} на {exchange_name} равен 0")
+                continue
+            print(f"Баланс положительный для {account_name} на {exchange_name}")
 
-                if balance and balance.get('USDT', {}).get('total', 0) > 0:
-                    print(f"Баланс положительный для {account_name} на {exchange_name}")
-
-                    # 3. Извлекаем символ из первых 6 символов имени файла
-                    symbol = file_name[:6]
-                    if not self.check_active_positions(symbol, exchange_name, exchange_config):
-                        print(f"Открытых позиций по инструменту из файла {file_name} нет, "
-                              f"перемещаем файл в in")
-                        destination_path = os.path.join(directory["path"], file_name)
-                        shutil.move(file_path, destination_path)
-                        print(f"Файл перемещен в {destination_path} на бирже {exchange_name}, аккаунт {account_name}")
-                        file_moved = True
-                        break
-                    else:
-                        print(f"Открыта позиция для {symbol}, файл {file_name} не перемещен")
-                else:
-                    print(f"Баланс для {account_name} на {exchange_name} равен 0")
-            else:
-                print(f"Файл {file_name} не соответствует шаблону {matching_pattern} для папки"
-                      f" {directory['path']}")
+            # 3. Проверяем на наличие открытых позиций
+            if self.check_active_positions(symbol, exchange_name, exchange_config):
+                print(f"Открыта позиция для {symbol}, файл {file_name} не перемещен")
+                continue
+            destination_path = os.path.join(directory["path"], file_name)
+            shutil.move(file_path, destination_path)
+            print(f"Файл перемещен в {destination_path} на бирже {exchange_name}, аккаунт"
+                  f" {account_name}, т. к. позиция не открыта")
+            file_moved = True
+            break
 
         # Иначе перемещаем в out
         if not file_moved:
@@ -156,6 +154,7 @@ def main():
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
 
 
 if __name__ == "__main__":
